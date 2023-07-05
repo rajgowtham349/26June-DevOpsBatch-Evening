@@ -3,7 +3,7 @@
 Master and Agent Set up
 =============================================================
 
-Step 1: create a workder/agent node (VM of type linux) on AWS
+Step 1: create a worker/agent node (VM of type linux) on AWS
 
 Step 2: Install git and java on worker node
 
