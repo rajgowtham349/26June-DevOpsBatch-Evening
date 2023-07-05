@@ -38,6 +38,26 @@ remote root directory : /tmp/jenkinsdir
 label : linux_node
 Usage: only build jobs with matching labels
 
+Launch method: launch via SSH
+
+Host: <private IP of Agent node>
+
+Crednetials --> Add button --> jenkins--> Select kind -> SSH username & private key
+iD: jenkinsagentid
+Description: jenkinsagentid
+Username: ec2-user
+Private Key : Click on Enter directly
+In key--> click on ADD --> here go to download folder of laptop--> open the correct key file with extention as given <filename>.pem
+Copy all the contents of the .epmfile --> give CTL A + CTL C
+Paste in the jenkins KEY field.
+
+Click on ADD button.
+
+Select the credentials form the drop down.
+
+Host Key Verification Strategy --> select Non verifying verification strategy.
+
+
 
 Step 7: check if connection is succesfull
 
