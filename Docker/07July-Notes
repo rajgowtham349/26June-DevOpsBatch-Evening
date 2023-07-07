@@ -1,0 +1,85 @@
+
+Delete a container:
+
+ docker rm -f cont1
+
+Delete Images and stopped containers:
+
+ docker system prune --all
+
+Using docker command run an webserver image -> launch a container--> container status should be up & running
+=======================================
+
+Detached Mode:(-d)
+=======================
+
+Whenver we run docker command with detached mode:
+
+ > A container will be created
+ > Container will be up & running
+ > user will not be attached to the terminal of to the container
+
+# docker run --name n1 -d nginx
+
+===============================
+Attach to the terminal of the container from the host machine:
+============================
+
+# docker exec -it <containername> command
+
+# docker exec -it web /bin/bash
+
+
+
+Access app running on the Containers from browser of the machine
+
+
+Port Forwarding OR Port Mapping:
+===================================
+
+By default an application on docker container is avaibale on its exposed port.
+
+It is the users internet that cannot reach the container port
+
+For this we have do port forwarding or mapping in docker
+
+i.e. we have to map a EC2 free system port with container port
+
+example = 8989:80
+
+systemport:containerport
+
+> If a container is already created, we canot do port forwarding for the container
+
+> port forwarding will be applied at the docker run comamnd itself
+
+> flag for port forwarding (-p)
+
+# docker run --name web1 -d -p 8989:80 nginx
+
+
+> if you want docker to do port mapping then use flag -P
+
+# docker run --name web2 -d -P httpd
+
+=============================================
+Volumes:
+===================
+
+In this case, data will be saved on any directory of host machine
+
+I have got source code for webapplication in github
+
+https://github.com/Sonal0409/ecomm.git
+
+we will clone the code in docker host in a directory
+
+we will mount the directory on a container with image httpd
+
+We will access the application on the container form browser of our machine
+
+
+# docker run -d --name myapp -P -v /root/ecomm:/usr/local/apache2/htdocs/ httpd
+
+Access the applicationf rom the browser.
+
