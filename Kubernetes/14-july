@@ -17,3 +17,25 @@ spec:
   - name: c3
     image: ubuntu
     command: ["bash", "-c", "sleep 6000"]
+
+==================================
+
+Deployment Object - example 1
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+ name: deploy1
+spec:
+ replicas: 5
+ selector:
+  matchLabels:
+   type: webserver
+ template: #This section is pod template that replicaset uses to create pods
+  metadata:
+   labels:
+    type: webserver
+  spec:
+   containers:
+    - name: app
+      image: leaddevops/kubeserve:v1
