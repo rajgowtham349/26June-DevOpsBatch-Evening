@@ -1,0 +1,102 @@
+
+Create roles:
+
+# su - ansiuser
+password: ansiuser
+
+#  cd /etc/ansible/roles
+# ansible-galaxy init apache
+
+# cd apache
+
+# vim tasks/main.yml
+
+- name: Install {{pkg_name}} server
+  package: name={{pkg_name}} state=present
+- name: start {{pkg_name}} server
+  service: name={{pkg_name}} state=started
+- name: Copy the html code on apache or httpd server
+  copy: src=index.html dest={{dest_path}}
+  notify: Restart {{pkg_name}} server
+
+
+# vim vars/main.yml
+
+pkg_name: httpd
+dest_path: /var/www/html
+
+# vim files/index.html
+
+
+<h1> this file is from Ansible </h1>
+
+<h1> Created by Sonal </h1>
+
+# vim apache/handlers/main.yml
+
+- name: Restart {{pkg_name}} server
+  service: name={{pkg_name}} state=restarted
+
+
+  cd ..
+
+  Make sure you are in /etc/ansible direcotry. Create a new playboom for exeucting roles:
+
+  - hosts: localhost
+  become: true
+  become_user: root
+  roles:
+   - apache
+
+
+run the playbook and role.
+
+=======================================
+
+  Loops in ansible
+
+  - hosts: localhost
+  become: true
+  become_user: root
+  tasks:
+  - name: Install multiple packages
+    package: name={{item}} state=present
+    loop:
+     - git
+     - docker
+     - maven
+     - tree
+     - nano
+============================
+
+Terraform:
+
+
+Install terraform:
+
+sudo yum install -y yum-utils shadow-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+
+
+# terraform --version
+
+
+Demo 1: Create crdentials on AWS so that terraform core CLI can connect to AWS provider
+
+GO to IAM --> click on Users--> give a name --> press next --> clcik on third radio button to attach policy--> select administrator access policy --> press next --> create user
+
+click on the user name--> select the tab with security credentials --> select option Access key--> select option Command Line Interface (CLI) --> scroll down and select the final checkbox --> click on next --> clikc on create access key
+
+
+
+
+
+
+
+
+
+
+
+
+
