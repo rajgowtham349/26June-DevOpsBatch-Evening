@@ -1,0 +1,363 @@
+Set for tomcat
+*****************
+
+Tomcat installation on EC2 instance
+
+Pre-requisites
+
+EC2 instance with Java 11
+
+sudo amazon-linux-extras install java-openjdk11 -y
+
+You can execute the command : [optional]
+
+# alternatives --config java
+
+To check java version, it should be 11
+
+
+Install tomcat:
+
+# Create tomcat directory
+
+Go to the EC2 machine - t2 micro
+
+
+cd /opt
+
+#  wget https://dlcdn.apache.org/tomcat/tomcat-8/v8.5.84/bin/apache-tomcat-8.5.84.tar.gz
+
+#  ls   ⇒ you will see the tar file
+
+# tar -xvzf apache-tomcat-8.5.84.tar.gz
+
+Rename the directory
+
+# mv apache-tomcat-8.5.84 tomcat
+
+#  cd tomcat
+
+
+# cd bin
+
+# ./startup.sh   ==> tomcat will be up and running
+
+Check point :
+
+access tomcat application from browser on port 8080
+
+<Public_IP>:8080
+
+Lets edit the context.xml file so as to access manager app
+
+
+# cd ..
+
+# vim /opt/tomcat/webapps/host-manager/META-INF/context.xml
+
+comment this line in the contxt.xml
+<Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />
+
+How to comment : : use this symbols:
+
+  <!--  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+  allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+
+# vim /opt/tomcat/webapps/manager/META-INF/context.xml
+
+comment this line in the contxt.xml
+<Valve className="org.apache.catalina.valves.RemoteAddrValve"
+         allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" />
+
+How: use this symbols:
+
+  <!--  <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+  allow="127\.\d+\.\d+\.\d+|::1|0:0:0:0:0:0:0:1" /> -->
+
+
+Save the files
+
+ Restart tomcat services
+
+#  cd bin
+
+# ./shutdown.sh
+
+# ./startup.sh
+
+
+
+Create roles and users
+
+# cd ..
+# 
+$ cd conf
+
+$ vim tomcat-users.xml
+
+Scroll till bottom and add 
+
+at the end before </tomcat-users> add these roles
+
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<user username="admin" password="admin" roles="manager-gui, manager-script, manager-jmx, manager-status"/>
+<user username="deployer" password="deployer" roles="manager-script"/>
+<user username="tomcat" password="s3cret" roles="manager-gui"/>
+
+Save the file
+
+Make sure there is no space before each line in the file
+
+********************************
+
+Restart tomcat
+
+# cd ..
+
+$ cd bin
+
+$ ./shutdown.sh
+
+$ ./startup.sh
+
+
+publicip:8080
+
+click on managerapp
+
+Username:    tomcat
+Password:   s3cret
+
+
+
+This completed tomcat installation
+***********************************************
+
+Go to jenkins server and start the jenkins dashboard
+
+Download a plugin: Deploy to container
+
+Create a free style job
+
+Give name to the job
+
+Select freestyle project
+Press okay
+
+give the repo name:  https://github.com/Sonal0409/DevOpsCodeDemo.git
+
+Build steps : select Invoke top level maven targets
+
+Maven Version : mymaven
+Goal: clean package
+
+Post build actions
+
+select deploy war/ear on container
+
+
+
+WAR/EAR files : **/*.war
+
+Containers:
+
+click on add container--> select Tomcat 8.x Remote
+
+Add credentials. Click on ADD button→ jenkins→
+Username: deployer , password = deployer
+Id = tomcat, description = tomcat
+
+Click on ADD button to save the credentials
+In credentials dropdown, select the credentials
+
+Tomcat URL
+
+http://publicip:8080/
+
+Save the job and execute it
+
+You can access the application from 
+
+http://publicip:8080/addressbook/
+
+
+Scenario 2:
+
+Deploy code on tomcat using Pipeline as code
+
+Algorithm of stages in the pipeline:
+
+Stage 1 -> clone the repo   
+Stage2 -> Package the code
+Stage3 -> Deployment of war file
+ >  jenkins will connect to tomcat server over ssh
+> using SSH command(SCP) we will copy the war file from jenkins workspace to the webapps directory of tomcat server
+
+
+Step 1: Start the tomcat webserver
+
+# cd /opt
+# cd tomcat
+# cd bin
+# ./startup.sh
+
+Step 2: In jenkins – Download a plugin : ssh agent
+Install it.
+
+Step 3: Create a pipeline job
+Stage 1 -> clone the repo   
+Stage2 -> Package the code
+
+Pipeline code for above 2 stages is :
+
+pipeline{
+    
+    tools{
+ 
+        maven 'mymaven'
+    }
+    
+    agent any
+    
+    stages{
+        stage ('Clone a repo')
+        {
+            steps {
+                git 'https://github.com/Sonal0409/DevOpsCodeDemo.git'
+            }
+        }
+        
+        stage ('Package the code')
+        {
+            steps{
+                sh 'mvn package'
+            }
+        }
+    }
+    
+}
+
+
+Now build the job
+
+Go to console output of build.. Scroll down and get the path of workspace where war file is present.
+
+For me it is:
+
+/var/lib/jenkins/workspace/CI_CDPipeline/target/addressbook.war
+
+
+Step 4:
+
+In the pipeline click on pipeline syntax
+
+Select from the drop down → SSH Agent
+
+Select the credentials by clicking on ADD button
+
+Select jenkins
+
+Select SSh with username with private key
+
+Give id : tomcatid2
+Give description as : tomcatid2
+Give username as : ec2-user
+Under Private Key
+Click on enter directly
+Click on Add button
+Go to AWS instance→ scroll right to see the pem file nae
+
+Go to download folder , get your pem file→ open it with notepad.. Copy all content and paste it in jenkins under key
+
+Clcik on ADD
+
+Under SSH agent in the drop down select your usercredentials
+
+Click on generate pipeline script
+
+Copy the script and we will add it in pipeline stage 
+
+ stage('Deploy the code on tomcat server')
+        {
+            steps{
+                
+                sshagent(['tomcatid1']) {
+                    
+    // script to copy war file on webapps directory
+    
+}
+            }
+        }
+
+
+Using SSH we will copy the addressbook.war file in the tomcat webapps directory
+
+The SSh command to copy the .war file is:
+
+ command:  scp  -o StrictHostKeyChecking=no filenamelocation username@publicip:Destinationpath
+
+For me it is :
+
+sh 'scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/PipelineCodeDeployment/target/addressbook.war ec2-user@18.116.238.106:/opt/tomcat/webapps'
+
+Save the JOB
+
+
+***** Also an important step is :
+
+Go to tomcat server and give permissions to ec2-user to make changes to webapps directory
+
+Just execute this command on tomcat server:
+
+# chown -R ec2-user:ec2-user /opt
+
+Now build the job.
+
+
+Complete script for CI Cd is:
+
+pipeline{
+    
+    tools{
+  
+        maven 'mymaven'
+    }
+    
+    agent any
+    
+    stages{
+        stage ('Clone a repo')
+        {
+            steps {
+                git 'https://github.com/Sonal0409/DevOpsCodeDemo.git'
+            }
+        }
+        
+        stage ('Package the code')
+        {
+            steps{
+                sh 'mvn package'
+            }
+        }
+        
+        stage('Deploy the code on tomcat server')
+        {
+            steps{
+                
+                sshagent(['tomcatid1']) {
+                    
+    
+sh 'scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/PipelineCodeDeployment/target/addressbook.war ec2-user@18.116.238.106:/opt/tomcat/webapps'
+
+    
+}
+            }
+        }
+    }
+    
+}
+
